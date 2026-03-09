@@ -86,6 +86,42 @@ function syncCurrentOpenClawRuntimeForTarget(context) {
   return { runtimeRoot: currentRoot, targetId };
 }
 
+function verifyPreinstalledPlugins(runtimeRoot, buildHint) {
+  const pkgPath = path.join(__dirname, '..', 'package.json');
+  let plugins = [];
+  try {
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+    plugins = (pkg.openclaw && pkg.openclaw.plugins) || [];
+  } catch {
+    return; // Cannot read package.json — skip verification
+  }
+
+  if (!Array.isArray(plugins) || plugins.length === 0) {
+    return;
+  }
+
+  const extensionsDir = path.join(runtimeRoot, 'extensions');
+  const missing = [];
+
+  for (const plugin of plugins) {
+    if (!plugin.id) continue;
+    const pluginDir = path.join(extensionsDir, plugin.id);
+    if (!existsSync(pluginDir)) {
+      missing.push(plugin.id);
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      '[electron-builder-hooks] Preinstalled OpenClaw plugins missing from runtime: '
+      + missing.join(', ')
+      + `. Run \`${buildHint}\` (which includes openclaw:plugins) before packaging.`,
+    );
+  }
+
+  console.log(`[electron-builder-hooks] Verified ${plugins.length} preinstalled OpenClaw plugin(s).`);
+}
+
 function ensureBundledOpenClawRuntime(context) {
   const { runtimeRoot, targetId } = syncCurrentOpenClawRuntimeForTarget(context);
   const buildHint = getOpenClawRuntimeBuildHint(targetId);
@@ -101,6 +137,9 @@ function ensureBundledOpenClawRuntime(context) {
       + `. Run \`${buildHint}\` before packaging.`,
     );
   }
+
+  // Verify preinstalled plugins are present in the runtime extensions directory
+  verifyPreinstalledPlugins(runtimeRoot, buildHint);
 
   const gatewayAsarPath = path.join(runtimeRoot, 'gateway.asar');
   if (existsSync(gatewayAsarPath)) {

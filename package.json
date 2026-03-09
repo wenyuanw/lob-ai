@@ -9,7 +9,14 @@
   "version": "0.2.2",
   "openclaw": {
     "version": "v2026.3.2",
-    "repo": "https://github.com/openclaw/openclaw.git"
+    "repo": "https://github.com/openclaw/openclaw.git",
+    "plugins": [
+      {
+        "id": "dingtalk-connector",
+        "npm": "@dingtalk-real-ai/dingtalk-connector",
+        "version": "0.7.3"
+      }
+    ]
   },
   "main": "dist-electron/main.js",
   "engines": {
@@ -49,13 +56,14 @@
     "setup:mingit": "node scripts/setup-mingit.js",
     "setup:python-runtime": "node scripts/setup-python-runtime.js",
     "openclaw:ensure": "node scripts/ensure-openclaw-version.cjs",
+    "openclaw:plugins": "node scripts/ensure-openclaw-plugins.cjs",
     "openclaw:runtime:host": "node scripts/openclaw-runtime-host.cjs",
-    "openclaw:runtime:mac-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs mac-arm64 && node scripts/sync-openclaw-runtime-current.cjs mac-arm64",
-    "openclaw:runtime:mac-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs mac-x64 && node scripts/sync-openclaw-runtime-current.cjs mac-x64",
-    "openclaw:runtime:win-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs win-x64 && node scripts/sync-openclaw-runtime-current.cjs win-x64",
-    "openclaw:runtime:win-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs win-arm64 && node scripts/sync-openclaw-runtime-current.cjs win-arm64",
-    "openclaw:runtime:linux-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs linux-x64 && node scripts/sync-openclaw-runtime-current.cjs linux-x64",
-    "openclaw:runtime:linux-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs linux-arm64 && node scripts/sync-openclaw-runtime-current.cjs linux-arm64",
+    "openclaw:runtime:mac-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs mac-arm64 && node scripts/sync-openclaw-runtime-current.cjs mac-arm64 && npm run openclaw:plugins",
+    "openclaw:runtime:mac-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs mac-x64 && node scripts/sync-openclaw-runtime-current.cjs mac-x64 && npm run openclaw:plugins",
+    "openclaw:runtime:win-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs win-x64 && node scripts/sync-openclaw-runtime-current.cjs win-x64 && npm run openclaw:plugins",
+    "openclaw:runtime:win-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs win-arm64 && node scripts/sync-openclaw-runtime-current.cjs win-arm64 && npm run openclaw:plugins",
+    "openclaw:runtime:linux-x64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs linux-x64 && node scripts/sync-openclaw-runtime-current.cjs linux-x64 && npm run openclaw:plugins",
+    "openclaw:runtime:linux-arm64": "npm run openclaw:ensure && node scripts/run-build-openclaw-runtime.cjs linux-arm64 && node scripts/sync-openclaw-runtime-current.cjs linux-arm64 && npm run openclaw:plugins",
     "regenerate:icon": "bash scripts/regenerate-mac-icon.sh",
     "fix:mac-icon": "bash scripts/fix-mac-icon-display.sh"
   },

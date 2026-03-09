@@ -1,3 +1,4 @@
+import { app } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import type { CoworkConfig, CoworkExecutionMode } from '../coworkStore';
@@ -23,6 +24,20 @@ const normalizeModelName = (modelId: string): string => {
   if (!trimmed) return 'default-model';
   const slashIndex = trimmed.lastIndexOf('/');
   return slashIndex >= 0 ? trimmed.slice(slashIndex + 1) : trimmed;
+};
+
+const readPreinstalledPluginIds = (): string[] => {
+  try {
+    const pkgPath = path.join(app.getAppPath(), 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    const plugins = pkg.openclaw?.plugins;
+    if (!Array.isArray(plugins)) return [];
+    return plugins
+      .map((p: { id?: string }) => p.id)
+      .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0);
+  } catch {
+    return [];
+  }
 };
 
 export type OpenClawConfigSyncResult = {
@@ -77,6 +92,8 @@ export class OpenClawConfigSync {
 
     const workspaceDir = (coworkConfig.workingDirectory || '').trim();
 
+    const preinstalledPluginIds = readPreinstalledPluginIds();
+
     const managedConfig: Record<string, unknown> = {
       gateway: {
         mode: 'local',
@@ -111,6 +128,16 @@ export class OpenClawConfigSync {
           ...(workspaceDir ? { workspace: workspaceDir } : {}),
         },
       },
+      ...(preinstalledPluginIds.length > 0
+        ? {
+            plugins: {
+              allow: preinstalledPluginIds,
+              entries: Object.fromEntries(
+                preinstalledPluginIds.map((id) => [id, { enabled: true }]),
+              ),
+            },
+          }
+        : {}),
     };
 
     const nextContent = `${JSON.stringify(managedConfig, null, 2)}\n`;

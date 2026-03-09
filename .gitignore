@@ -18,6 +18,7 @@ sandbox/image/.work/
 sandbox/runtime/out/
 sandbox/runtime-darwin-*/
 vendor/openclaw-runtime/
+vendor/openclaw-plugins/
 
 # Bundled PortableGit for Windows builds (downloaded via scripts/setup-mingit.js)
 resources/mingit/

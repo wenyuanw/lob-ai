@@ -352,6 +352,7 @@ export class OpenClawEngineManager extends EventEmitter {
       OPENCLAW_GATEWAY_PORT: String(port),
       OPENCLAW_NO_RESPAWN: '1',
       OPENCLAW_ENGINE_VERSION: runtime.version || DEFAULT_OPENCLAW_VERSION,
+      OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(runtime.root, 'extensions'),
     };
 
     const forkArgs = ['gateway', '--bind', 'loopback', '--port', String(port), '--token', token];
