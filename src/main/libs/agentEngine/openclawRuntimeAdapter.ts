@@ -983,9 +983,9 @@ export class OpenClawRuntimeAdapter extends EventEmitter implements CoworkRuntim
     }
     console.log('[ChannelSync] ensureGatewayClientReady: gateway client created and ready');
 
-    // Fire-and-forget: pre-warm the browser so Chrome is already running
-    // before the AI agent calls the browser tool (avoids 15s startup timeout).
-    this.prewarmBrowserIfNeeded(connection);
+    // Browser pre-warm disabled: the empty browser window is disruptive.
+    // The browser will start on-demand when the AI agent first calls the browser tool.
+    // this.prewarmBrowserIfNeeded(connection);
   }
 
   private async createGatewayClient(connection: OpenClawGatewayConnectionInfo): Promise<void> {
