@@ -462,8 +462,6 @@ class CoworkService {
 
   async listMemoryEntries(input: {
     query?: string;
-    status?: 'created' | 'stale' | 'deleted' | 'all';
-    includeDeleted?: boolean;
     limit?: number;
     offset?: number;
   }): Promise<CoworkUserMemoryEntry[]> {
@@ -476,8 +474,6 @@ class CoworkService {
 
   async createMemoryEntry(input: {
     text: string;
-    confidence?: number;
-    isExplicit?: boolean;
   }): Promise<CoworkUserMemoryEntry | null> {
     const api = window.electron?.cowork?.createMemoryEntry;
     if (!api) return null;
@@ -488,10 +484,7 @@ class CoworkService {
 
   async updateMemoryEntry(input: {
     id: string;
-    text?: string;
-    confidence?: number;
-    status?: 'created' | 'stale' | 'deleted';
-    isExplicit?: boolean;
+    text: string;
   }): Promise<CoworkUserMemoryEntry | null> {
     const api = window.electron?.cowork?.updateMemoryEntry;
     if (!api) return null;

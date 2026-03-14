@@ -80,12 +80,12 @@ const CoworkView: React.FC<CoworkViewProps> = ({ onRequestAppSettings, onShowSki
       case 'ready':
         return i18nService.t('coworkOpenClawReadyNotice');
       case 'starting':
-        return 'AI 引擎正在启动网关...';
+        return i18nService.t('coworkOpenClawStarting');
       case 'error':
-        return 'AI 引擎初始化失败，请前往设置页检查运行时配置。';
+        return i18nService.t('coworkOpenClawError');
       case 'running':
       default:
-        return 'AI 引擎已就绪。';
+        return i18nService.t('coworkOpenClawRunning');
     }
   };
 

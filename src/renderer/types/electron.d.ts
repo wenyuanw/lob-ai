@@ -74,12 +74,6 @@ type CoworkConfigUpdate = Partial<Pick<
 interface CoworkUserMemoryEntry {
   id: string;
   text: string;
-  confidence: number;
-  isExplicit: boolean;
-  status: 'created' | 'stale' | 'deleted';
-  createdAt: number;
-  updatedAt: number;
-  lastUsedAt: number | null;
 }
 
 interface CoworkMemoryStats {
@@ -323,22 +317,15 @@ interface IElectronAPI {
     setConfig: (config: CoworkConfigUpdate) => Promise<{ success: boolean; error?: string }>;
     listMemoryEntries: (input: {
       query?: string;
-      status?: 'created' | 'stale' | 'deleted' | 'all';
-      includeDeleted?: boolean;
       limit?: number;
       offset?: number;
     }) => Promise<{ success: boolean; entries?: CoworkUserMemoryEntry[]; error?: string }>;
     createMemoryEntry: (input: {
       text: string;
-      confidence?: number;
-      isExplicit?: boolean;
     }) => Promise<{ success: boolean; entry?: CoworkUserMemoryEntry; error?: string }>;
     updateMemoryEntry: (input: {
       id: string;
-      text?: string;
-      confidence?: number;
-      status?: 'created' | 'stale' | 'deleted';
-      isExplicit?: boolean;
+      text: string;
     }) => Promise<{ success: boolean; entry?: CoworkUserMemoryEntry; error?: string }>;
     deleteMemoryEntry: (input: { id: string }) => Promise<{ success: boolean; error?: string }>;
     getMemoryStats: () => Promise<{ success: boolean; stats?: CoworkMemoryStats; error?: string }>;

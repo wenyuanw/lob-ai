@@ -103,17 +103,9 @@ export interface OpenClawEngineStatus {
   canRetry: boolean;
 }
 
-export type CoworkUserMemoryStatus = 'created' | 'stale' | 'deleted';
-
 export interface CoworkUserMemoryEntry {
   id: string;
   text: string;
-  confidence: number;
-  isExplicit: boolean;
-  status: CoworkUserMemoryStatus;
-  createdAt: number;
-  updatedAt: number;
-  lastUsedAt: number | null;
 }
 
 export interface CoworkMemoryStats {
