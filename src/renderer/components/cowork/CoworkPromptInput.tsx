@@ -116,6 +116,7 @@ const CoworkPromptInput = React.forwardRef<CoworkPromptInputRef, CoworkPromptInp
     const [isDraggingFiles, setIsDraggingFiles] = useState(false);
     const [isAddingFile, setIsAddingFile] = useState(false);
     const [imageVisionHint, setImageVisionHint] = useState(false);
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const folderButtonRef = useRef<HTMLButtonElement>(null);
     const dragDepthRef = useRef(0);
@@ -487,6 +488,7 @@ const CoworkPromptInput = React.forwardRef<CoworkPromptInputRef, CoworkPromptInp
               }
             } catch (error) {
               console.error('Failed to read image as data URL:', error);
+
             }
           } else {
             hasImageWithoutVision = true;
@@ -496,6 +498,7 @@ const CoworkPromptInput = React.forwardRef<CoworkPromptInputRef, CoworkPromptInp
       }
       if (hasImageWithoutVision) {
         setImageVisionHint(true);
+
       }
     } catch (error) {
       console.error('Failed to select file:', error);

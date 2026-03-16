@@ -80,6 +80,8 @@ class ScheduledTaskService {
       }
     } catch (err: unknown) {
       store.dispatch(setError(err instanceof Error ? err.message : String(err)));
+    } finally {
+      store.dispatch(setLoading(false));
     }
   }
 

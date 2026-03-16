@@ -389,6 +389,7 @@ export class IMGatewayManager extends EventEmitter {
       this.updateChatHandler();
     }
 
+
     // Hot-update NIM config: if credential fields changed while gateway is connected,
     // restart the gateway transparently so the SDK re-logs in with new credentials.
     if (config.nim && this.nimGateway) {
@@ -398,12 +399,21 @@ export class IMGatewayManager extends EventEmitter {
         newNim.appKey !== oldNim.appKey ||
         newNim.account !== oldNim.account ||
         newNim.token !== oldNim.token;
+      const gatewayShouldBeActive =
+        Boolean(newNim.enabled && newNim.appKey && newNim.account && newNim.token);
 
-      if (credentialsChanged && this.nimGateway.isConnected()) {
-        console.log('[IMGatewayManager] NIM credentials changed, restarting gateway...');
-        this.restartGateway('nim').catch((err) => {
-          console.error('[IMGatewayManager] Failed to restart NIM after config change:', err.message);
-        });
+      if (credentialsChanged && gatewayShouldBeActive) {
+        if (this.nimGateway.isRunning() || this.nimGateway.isReconnecting()) {
+          console.log('[IMGatewayManager] NIM credentials changed, restarting gateway...');
+          this.restartGateway('nim').catch((err) => {
+            console.error('[IMGatewayManager] Failed to restart NIM after config change:', err.message);
+          });
+        } else {
+          console.log('[IMGatewayManager] NIM credentials changed, starting gateway...');
+          this.startGateway('nim').catch((err) => {
+            console.error('[IMGatewayManager] Failed to start NIM after config change:', err.message);
+          });
+        }
       } else {
         // Hot-update non-credential fields (e.g. accountWhitelist) without restart
         const nonCredentialChanged =
@@ -419,6 +429,7 @@ export class IMGatewayManager extends EventEmitter {
 
     // Feishu now runs via OpenClaw; config sync is handled by IPC handler
 
+
     // Hot-update Xiaomifeng config: restart if credential fields changed
     if (config.xiaomifeng && this.xiaomifengGateway) {
       const oldXmf = previousConfig.xiaomifeng;
@@ -426,20 +437,30 @@ export class IMGatewayManager extends EventEmitter {
       const credentialsChanged =
         newXmf.clientId !== oldXmf.clientId ||
         newXmf.secret !== oldXmf.secret;
+      const gatewayShouldBeActive =
+        Boolean(newXmf.enabled && newXmf.clientId && newXmf.secret);
 
       // Check if gateway is connected OR actively reconnecting (has pending timer)
-      const isActiveOrReconnecting = this.xiaomifengGateway.isConnected() || this.xiaomifengGateway.isReconnecting();
-      if (credentialsChanged && isActiveOrReconnecting) {
-        console.log('[IMGatewayManager] Xiaomifeng credentials changed, restarting gateway...');
-        this.restartGateway('xiaomifeng').catch((err) => {
-          console.error('[IMGatewayManager] Failed to restart Xiaomifeng after config change:', err.message);
-        });
+      const isActiveOrReconnecting = this.xiaomifengGateway.isRunning() || this.xiaomifengGateway.isReconnecting();
+      if (credentialsChanged && gatewayShouldBeActive) {
+        if (isActiveOrReconnecting) {
+          console.log('[IMGatewayManager] Xiaomifeng credentials changed, restarting gateway...');
+          this.restartGateway('xiaomifeng').catch((err) => {
+            console.error('[IMGatewayManager] Failed to restart Xiaomifeng after config change:', err.message);
+          });
+        } else {
+          console.log('[IMGatewayManager] Xiaomifeng credentials changed, starting gateway...');
+          this.startGateway('xiaomifeng').catch((err) => {
+            console.error('[IMGatewayManager] Failed to start Xiaomifeng after config change:', err.message);
+          });
+        }
       }
     }
 
     // QQ runs via OpenClaw; config changes are synced via OpenClawConfigSync
 
     // WeCom runs via OpenClaw; config changes are synced via OpenClawConfigSync
+
   }
 
   /**
@@ -1486,6 +1507,7 @@ export class IMGatewayManager extends EventEmitter {
         throw new Error('配置不完整');
       }
       return `企业微信配置已就绪（Bot ID: ${botId}），通过 OpenClaw 运行。`;
+
     }
 
     if (platform === 'qq') {

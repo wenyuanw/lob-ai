@@ -1675,6 +1675,7 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
 
     // Show turn nav and reset hide timer (use functional updater to avoid redundant re-renders)
     setShowTurnNav((prev) => (prev ? prev : true));
+
     if (hideNavTimerRef.current) clearTimeout(hideNavTimerRef.current);
     hideNavTimerRef.current = setTimeout(() => setShowTurnNav(false), NAV_HIDE_DELAY);
 
@@ -1787,6 +1788,20 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
     );
   }, [turns]);
 
+  const messages = currentSession?.messages;
+  const displayItems = useMemo(() => messages ? buildDisplayItems(messages) : [], [messages]);
+  const turns = useMemo(() => buildConversationTurns(displayItems), [displayItems]);
+
+  // Cache turn DOM elements when turns change
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) { turnElsCacheRef.current = []; return; }
+    // DOM is already committed when useEffect runs, query synchronously
+    turnElsCacheRef.current = Array.from(
+      container.querySelectorAll<HTMLElement>('[data-turn-index]')
+    );
+  }, [turns]);
+
   // Auto scroll to bottom when new messages arrive or content updates (streaming)
   useEffect(() => {
     if (!shouldAutoScroll) {
@@ -1803,7 +1818,8 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
       currentTurnIndexRef.current = lastIndex;
       setCurrentTurnIndex(lastIndex);
     }
-  }, [currentSession?.messages?.length, lastMessageContent, isStreaming, shouldAutoScroll]);
+  }, [currentSession?.messages?.length, lastMessageContent, isStreaming, shouldAutoScroll, turns.length]);
+
 
   if (!currentSession) {
     return null;
@@ -2042,6 +2058,7 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
         {turns.length > 1 && isScrollable && (
           <div
             className={`absolute right-6 top-1/2 -translate-y-1/2 flex flex-col rounded-lg overflow-hidden shadow-lg transition-opacity duration-300 z-10
+
               dark:bg-claude-darkSurface/90 bg-claude-surface/90 backdrop-blur-sm
               border dark:border-claude-darkBorder border-claude-border
               ${showTurnNav ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
