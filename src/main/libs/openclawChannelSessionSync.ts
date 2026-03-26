@@ -307,7 +307,7 @@ export class OpenClawChannelSessionSync {
         const currentAgentId = imSettings.platformAgentBindings?.[parsed.platform] || 'main';
         if (existingMapping.agentId !== currentAgentId) {
           console.log('[ChannelSessionSync] agent binding changed:', existingMapping.agentId, '→', currentAgentId, '— creating new session');
-          const titlePrefix = CHANNEL_TITLE_PREFIX[parsed.platform] || `[${parsed.platform}]`;
+          const titlePrefix = getChannelTitlePrefix(parsed.platform);
           const displayId = parsed.conversationId.includes('@')
             ? parsed.conversationId.split('@')[0]
             : parsed.conversationId;

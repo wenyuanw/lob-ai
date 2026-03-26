@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { app, BrowserWindow } from 'electron';
 import { EventEmitter } from 'events';
+import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
@@ -620,7 +621,7 @@ export class OpenClawRuntimeAdapter extends EventEmitter implements CoworkRuntim
         limit: OpenClawRuntimeAdapter.FULL_HISTORY_SYNC_LIMIT,
       });
       if (!Array.isArray(history?.messages) || history.messages.length === 0) {
-        return null;
+        return this.readFromDeletedTranscript(sessionKey);
       }
 
       const now = Date.now();
@@ -657,6 +658,103 @@ export class OpenClawRuntimeAdapter extends EventEmitter implements CoworkRuntim
       };
     } catch (error) {
       console.error('[OpenClawRuntime] fetchSessionByKey: failed to fetch history:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Fallback for fetchSessionByKey when chat.history returns no messages.
+   *
+   * openclaw's maintenance logic may archive a session transcript by renaming
+   * `{sessionId}.jsonl` → `{sessionId}.jsonl.deleted.{timestamp}` while the
+   * session entry remains in sessions.json. In that case chat.history cannot
+   * find the file (it only looks for the plain `.jsonl` path) and returns [].
+   * This method reads the archived file directly from disk.
+   */
+  private async readFromDeletedTranscript(sessionKey: string): Promise<CoworkSession | null> {
+    try {
+      // Extract agentId from "agent:{agentId}:..." pattern
+      const agentMatch = sessionKey.match(/^agent:([^:]+):/);
+      const agentId = agentMatch?.[1] ?? 'main';
+
+      // Extract sessionId from "...run:{uuid}" pattern (runId equals sessionId)
+      const runMatch = sessionKey.match(/(?:^|:)run:([0-9a-f-]{36})(?:$|:)/i);
+      const sessionId = runMatch?.[1];
+      if (!sessionId) return null;
+
+      const stateDir = this.engineManager.getStateDir();
+      const sessionsDir = path.join(stateDir, 'agents', agentId, 'sessions');
+
+      const files = await fs.promises.readdir(sessionsDir).catch(() => [] as string[]);
+      const deletedFile = files.find(f => f.startsWith(`${sessionId}.jsonl.deleted.`));
+      if (!deletedFile) {
+        console.log('[OpenClawRuntime] readFromDeletedTranscript: no archived transcript found for sessionId:', sessionId);
+        return null;
+      }
+
+      console.log('[OpenClawRuntime] readFromDeletedTranscript: reading archived transcript:', deletedFile);
+      const filePath = path.join(sessionsDir, deletedFile);
+      const content = await fs.promises.readFile(filePath, 'utf-8');
+      const lines = content.split(/\r?\n/);
+
+      const messages: CoworkMessage[] = [];
+      let msgIndex = 0;
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const parsed = JSON.parse(line) as Record<string, unknown>;
+          if (parsed?.type !== 'message' || !parsed.message) continue;
+          const msg = parsed.message as { role?: string; content?: unknown; timestamp?: number };
+          const role = msg.role;
+          if (role !== 'user' && role !== 'assistant') continue;
+
+          const msgContent = msg.content;
+          const text = Array.isArray(msgContent)
+            ? (msgContent as Array<Record<string, unknown>>)
+                .filter(b => b?.type === 'text')
+                .map(b => b.text as string)
+                .join('\n')
+            : typeof msgContent === 'string' ? msgContent : '';
+
+          if (!text.trim()) continue;
+
+          const timestamp = typeof msg.timestamp === 'number'
+            ? msg.timestamp
+            : typeof parsed.timestamp === 'string' ? Date.parse(parsed.timestamp) : Date.now();
+
+          messages.push({
+            id: `transient-${msgIndex++}`,
+            type: role as 'user' | 'assistant',
+            content: text,
+            timestamp,
+            metadata: role === 'assistant' ? { isStreaming: false, isFinal: true } : {},
+          });
+        } catch {
+          // skip malformed lines
+        }
+      }
+
+      if (messages.length === 0) return null;
+
+      const firstTimestamp = messages[0]?.timestamp ?? Date.now();
+      return {
+        id: `transient-${sessionKey}`,
+        agentId: '',
+        title: sessionKey.split(':').pop() || 'Cron Session',
+        claudeSessionId: null,
+        status: 'completed' as CoworkSessionStatus,
+        pinned: false,
+        cwd: '',
+        systemPrompt: '',
+        executionMode: 'local' as CoworkExecutionMode,
+        activeSkillIds: [],
+        messages,
+        createdAt: firstTimestamp,
+        updatedAt: firstTimestamp,
+      };
+    } catch (error) {
+      console.warn('[OpenClawRuntime] readFromDeletedTranscript failed:', error);
       return null;
     }
   }
