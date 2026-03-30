@@ -34,7 +34,7 @@ const ActiveSkillBadge: React.FC = () => {
           key={skill.id}
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-claude-accent/10 border border-claude-accent/20"
         >
-          <PuzzleIcon className="h-3 w-3 text-claude-accent" />
+          <PuzzleIcon className="h-3.5 w-3.5 text-claude-accent" />
           <span className="text-xs font-medium text-claude-accent max-w-[80px] truncate">
             {skill.name}
           </span>
