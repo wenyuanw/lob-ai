@@ -163,7 +163,7 @@ function rebuildMemoryMd(
   let inCodeBlock = false;
 
   for (const line of lines) {
-    // Toggle code-block state
+    // Toggle fenced-code-block state (never treat bullets inside as entries)
     if (line.trimStart().startsWith('```')) {
       inCodeBlock = !inCodeBlock;
       result.push(line);
@@ -388,7 +388,7 @@ export function migrateSqliteToMemoryMd(
     let skipped = 0;
     for (const raw of texts) {
       const text = raw.replace(/\s+/g, ' ').trim();
-      if (!text || text.length < 2) continue;
+      if (!text || text.length < 1) continue;
       const id = fingerprint(text);
       if (existingIds.has(id)) {
         skipped++;
