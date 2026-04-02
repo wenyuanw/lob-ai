@@ -1391,8 +1391,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const promptInputRef = useRef<CoworkPromptInputRef>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const prevMessageCountRef = useRef(0);
 
   // Clear lazy-render height cache when session changes
   const sessionId = currentSession?.id;
@@ -1439,8 +1437,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
 
   useEffect(() => {
     setShouldAutoScroll(true);
-    setHasUnreadMessages(false);
-    prevMessageCountRef.current = 0;
   }, [currentSession?.id]);
 
   // Focus rename input when entering rename mode
@@ -1866,9 +1862,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
     const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     const isNearBottom = distanceToBottom <= AUTO_SCROLL_THRESHOLD;
     setShouldAutoScroll((prev) => (prev === isNearBottom ? prev : isNearBottom));
-    if (isNearBottom) {
-      setHasUnreadMessages(false);
-    }
 
     // Check if content overflows the container (use functional updater to avoid redundant re-renders)
     const scrollable = container.scrollHeight > container.clientHeight;
@@ -2071,15 +2064,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
     }
   }, [currentRailIndex]);
 
-  // Track new messages while scrolled away — show unread badge
-  const messageCount = currentSession?.messages?.length ?? 0;
-  useEffect(() => {
-    if (messageCount > prevMessageCountRef.current && !shouldAutoScroll) {
-      setHasUnreadMessages(true);
-    }
-    prevMessageCountRef.current = messageCount;
-  }, [messageCount, shouldAutoScroll]);
-
   // Auto scroll to bottom when new messages arrive or content updates (streaming)
   useEffect(() => {
     if (!shouldAutoScroll) {
@@ -2100,14 +2084,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
     }
   }, [currentSession?.messages?.length, lastMessageContent, isStreaming, shouldAutoScroll, turns.length]);
 
-
-  const scrollToBottom = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-    setShouldAutoScroll(true);
-    setHasUnreadMessages(false);
-  }, []);
 
   if (!currentSession) {
     return null;
@@ -2401,7 +2377,7 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
         </div>
 
         {/* Turn Navigation Rail — to the left of scrollbar */}
-        {(turns.length > 1 || !shouldAutoScroll) && isScrollable && (
+        {turns.length > 1 && isScrollable && (
           <div
             className="absolute right-[18px] top-1/2 -translate-y-1/2 w-5 flex flex-col items-end z-10"
             style={{ maxHeight: 'calc(100% - 40px)' }}
@@ -2568,24 +2544,6 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
-
-            {/* Scroll to Bottom */}
-            {!shouldAutoScroll && (
-              <button
-                type="button"
-                onClick={scrollToBottom}
-                className="relative shrink-0 flex items-center justify-center w-5 h-5 mt-2 -mr-[5px] rounded-full transition-all text-neutral-600 dark:text-neutral-400
-                  cursor-pointer hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60"
-                title={i18nService.t('coworkScrollToBottom')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 5.25l-7.5 7.5-7.5-7.5m15 6l-7.5 7.5-7.5-7.5" />
-                </svg>
-                {hasUnreadMessages && (
-                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-claude-accent animate-pulse" />
-                )}
-              </button>
-            )}
           </div>
         )}
 
