@@ -75,14 +75,14 @@ const AgentSkillSelector: React.FC<AgentSkillSelectorProps> = ({ selectedSkillId
                 key={skill.id}
                 type="button"
                 onClick={() => toggle(skill.id)}
-                className={`w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-surface-raised transition-colors rounded-lg ${
+                className={`group w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-surface-raised transition-colors rounded-lg ${
                   isSelected ? 'bg-primary/5' : ''
                 }`}
               >
-                <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
+                <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                   isSelected
                     ? 'bg-primary border-primary'
-                    : 'border-border'
+                    : 'border-border dark:border-gray-500 group-hover:border-gray-400 dark:group-hover:border-gray-300'
                 }`}>
                   {isSelected && <CheckIcon className="h-3 w-3 text-white" />}
                 </div>
