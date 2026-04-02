@@ -4,8 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { XCircleIcon as XCircleIconSolid } from '@heroicons/react/20/solid';
-import { EyeIcon, EyeSlashIcon, SignalIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, XCircleIcon as XCircleIconSolid } from '@heroicons/react/20/solid';
+import { SignalIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import TrashIcon from '../icons/TrashIcon';
 import type { DingTalkInstanceConfig, DingTalkInstanceStatus, DingTalkOpenClawConfig, IMConnectivityTestResult } from '../../types/im';
 import { i18nService } from '../../services/i18n';
